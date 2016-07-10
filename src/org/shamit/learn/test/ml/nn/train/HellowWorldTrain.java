@@ -1,8 +1,10 @@
 package org.shamit.learn.test.ml.nn.train;
 
+import java.io.File;
 import java.text.DecimalFormat;
 import java.util.List;
 import java.util.Random;
+
 
 import org.encog.engine.network.activation.ActivationTANH;
 import org.encog.ml.data.MLData;
@@ -13,6 +15,7 @@ import org.encog.neural.data.basic.BasicNeuralDataSet;
 import org.encog.neural.networks.BasicNetwork;
 import org.encog.neural.networks.layers.BasicLayer;
 import org.encog.neural.networks.training.propagation.resilient.ResilientPropagation;
+import org.encog.persist.EncogDirectoryPersistence;
 import org.shamit.learn.test.ml.nn.data.DataLoader;
 import org.shamit.learn.test.ml.nn.data.Sentence;
 
@@ -20,6 +23,8 @@ public class HellowWorldTrain {
 
 	public static void main(String[] args) throws Exception{
 		int maxLen=200;
+		
+		File networkSavePath=new File(Constants.BASE_DIR + File.separator + "encog_network.eg");
 		DataLoader dl = new DataLoader();
 		List<Sentence> sents = dl.getSentences();
 		System.out.println(sents.size() + " sentences loaded.");
@@ -49,7 +54,7 @@ public class HellowWorldTrain {
 		
 		System.out.println("Network created. Structure is :: \n\t"+network.getFactoryArchitecture());
 		ResilientPropagation rprop = new ResilientPropagation(network,trainingSet);
-		int iterations=20;
+		int iterations=2000;
 		DecimalFormat df = new DecimalFormat();
 		System.out.println("Runing "+iterations+" iterations of training");
 		do{
@@ -57,6 +62,8 @@ public class HellowWorldTrain {
 			System.out.println("Iter # "+rprop.getIteration()+" error "+df.format(rprop.getError()));
 		}while(rprop.getIteration()<=iterations);
 		rprop.finishTraining();
+		
+		EncogDirectoryPersistence.saveObject(networkSavePath, network);
 		
 		//Test 100 Random sentences
 		Random rnd = new Random();
