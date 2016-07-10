@@ -12,8 +12,25 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.3</version>
 				<configuration>
+					<compilerVersion>1.8</compilerVersion>
 					<source />
 					<target />
+					<compilerArguments>
+						<source>1.8</source>
+						<target>1.8</target>
+					</compilerArguments>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>appassembler-maven-plugin</artifactId>
+				<configuration>
+					<programs>
+						<program>
+							<mainClass>org.shamit.learn.test.ml.nn.train.TrainingPipeline</mainClass>
+							<name>NNTrainer</name>
+						</program>
+					</programs>
 				</configuration>
 			</plugin>
 		</plugins>
