@@ -30,6 +30,16 @@ public class Sentence {
 		return ret;
 	}
 	
+	public double[] getEncodedLabel(){
+		double labels[]=new double[1];
+		double score=0;
+		if(isSentimentPositive()){
+			score=1;
+		}
+		labels[0]=score;
+		return labels;
+	}
+	
 	@Override
 	public String toString() {
 		return "Sentence [sentence=" + sentence + ", sentimentPositive=" + sentimentPositive + "]";
