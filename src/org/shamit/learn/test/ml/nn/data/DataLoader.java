@@ -32,7 +32,7 @@ public class DataLoader {
 		}
 	}
 	
-	List<Sentence> getSentences() throws IOException{
+	public List<Sentence> getSentences() throws IOException{
 		initStreams();
 		List<String> lines=new ArrayList<>();
 		List<Sentence> ret=new ArrayList<>();

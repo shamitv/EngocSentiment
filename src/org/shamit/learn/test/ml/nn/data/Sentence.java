@@ -22,7 +22,7 @@ public class Sentence {
 		this.sentimentPositive = sentimentPositive;
 	}
 	
-	double[] getEncodedText(int arrayLen){
+	public double[] getEncodedText(int arrayLen){
 		double ret[]=new double[arrayLen];
 		for(int i=0;i<sentence.length() && i<arrayLen;i++){
 			ret[i]= Character.getNumericValue(sentence.charAt(i));
