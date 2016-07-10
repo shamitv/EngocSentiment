@@ -17,4 +17,12 @@
       </plugin>
     </plugins>
   </build>
+  <dependencies>
+  	<dependency>
+  		<groupId>org.encog</groupId>
+  		<artifactId>encog-core</artifactId>
+  		<version>3.3.0</version>
+  		<scope>runtime</scope>
+  	</dependency>
+  </dependencies>
 </project>
