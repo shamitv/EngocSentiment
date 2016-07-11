@@ -20,6 +20,43 @@ public class TrainingPipeline {
 
 	static MLDataSet trainingDataSet=null;
 	static int maxLen=200;
+	static BasicNetwork network = null;
+	
+	static void loadOrCreateNetwork(String networkFile){
+		System.out.println("Using network from file :: "+networkFile);
+		File f=new File(networkFile);
+		if(f.exists()){
+			network=(BasicNetwork)EncogDirectoryPersistence.loadObject(f);
+		}else{
+			System.out.println("Network file not found, creating it ::  "+networkFile);
+			
+			network = new BasicNetwork();
+			network.addLayer(new BasicLayer(null,true,maxLen));
+			network.addLayer(new BasicLayer(new ActivationTANH(),true,maxLen*2));
+			network.addLayer(new BasicLayer(new ActivationTANH(),true,maxLen*2));
+			network.addLayer(new BasicLayer(new ActivationTANH(),true,maxLen/2));
+			network.addLayer(new BasicLayer(new ActivationTANH(),true,maxLen/(2*2)));
+			network.addLayer(new BasicLayer(new ActivationTANH(),true,maxLen/(2*2*2)));
+			network.addLayer(new BasicLayer(new ActivationTANH(),true,maxLen/(2*2*2*2)));
+			network.addLayer(new BasicLayer(new ActivationTANH(),true,maxLen/(2*2*2*2*2)));
+			network.addLayer(new BasicLayer(new ActivationTANH(),false,1));
+			network.getStructure().finalizeStructure();
+			network.reset();
+			
+			ResilientPropagation rprop = new ResilientPropagation(network,trainingDataSet);
+			int iterations=2000;
+			DecimalFormat df = new DecimalFormat();
+			System.out.println("Runing "+iterations+" iterations of training");
+			do{
+				rprop.iteration();
+				System.out.println("Iter # "+rprop.getIteration()+" error "+df.format(rprop.getError()));
+			}while(rprop.getIteration()<=iterations);
+			rprop.finishTraining();
+			
+			EncogDirectoryPersistence.saveObject(f, network);
+			System.out.println("Network saved in file :: "+f.getAbsolutePath());
+		}
+	}
 	
 	static void loadOrCreateData(String dataFile) throws IOException {
 		System.out.println("Using data file :: "+dataFile);
@@ -68,33 +105,11 @@ public class TrainingPipeline {
 		System.out.println("Using base Directory :: "+Constants.BASE_DIR);
 		validateBaseDir();
 		String dataFile = Constants.BASE_DIR + File.separator + "traningData.egb";
-		loadOrCreateData(dataFile);
-		BasicNetwork network = new BasicNetwork();
-		network.addLayer(new BasicLayer(null,true,maxLen));
-		network.addLayer(new BasicLayer(new ActivationTANH(),true,maxLen*2));
-		network.addLayer(new BasicLayer(new ActivationTANH(),true,maxLen*2));
-		network.addLayer(new BasicLayer(new ActivationTANH(),true,maxLen/2));
-		network.addLayer(new BasicLayer(new ActivationTANH(),true,maxLen/(2*2)));
-		network.addLayer(new BasicLayer(new ActivationTANH(),true,maxLen/(2*2*2)));
-		network.addLayer(new BasicLayer(new ActivationTANH(),true,maxLen/(2*2*2*2)));
-		network.addLayer(new BasicLayer(new ActivationTANH(),true,maxLen/(2*2*2*2*2)));
-		network.addLayer(new BasicLayer(new ActivationTANH(),false,1));
-		network.getStructure().finalizeStructure();
-		network.reset();
-		
-		System.out.println("Network created. Structure is :: \n\t"+network.getFactoryArchitecture());
-		ResilientPropagation rprop = new ResilientPropagation(network,trainingDataSet);
-		int iterations=2000;
-		DecimalFormat df = new DecimalFormat();
-		System.out.println("Runing "+iterations+" iterations of training");
-		do{
-			rprop.iteration();
-			System.out.println("Iter # "+rprop.getIteration()+" error "+df.format(rprop.getError()));
-		}while(rprop.getIteration()<=iterations);
-		rprop.finishTraining();
 		File networkSavePath=new File(Constants.BASE_DIR + File.separator + "encog_network.eg");
-		EncogDirectoryPersistence.saveObject(networkSavePath, network);
-		
+		loadOrCreateData(dataFile);
+		loadOrCreateNetwork(networkSavePath.getAbsolutePath());
+		System.out.println("Network structure is :: \n\t"+network.getFactoryArchitecture());
+		System.exit(0);
 	}
 
 
