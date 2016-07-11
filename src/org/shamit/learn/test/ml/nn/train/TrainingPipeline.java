@@ -6,6 +6,8 @@ import java.text.DecimalFormat;
 import java.util.List;
 
 import org.encog.engine.network.activation.ActivationTANH;
+import org.encog.ml.data.MLData;
+import org.encog.ml.data.MLDataPair;
 import org.encog.ml.data.MLDataSet;
 import org.encog.ml.data.basic.BasicMLDataSet;
 import org.encog.neural.networks.BasicNetwork;
@@ -19,6 +21,7 @@ import org.shamit.learn.test.ml.nn.data.Sentence;
 public class TrainingPipeline {
 
 	static MLDataSet trainingDataSet=null;
+	static MLDataSet testDataSet=null;
 	static int maxLen=200;
 	static BasicNetwork network = null;
 	
@@ -58,34 +61,44 @@ public class TrainingPipeline {
 		}
 	}
 	
-	static void loadOrCreateData(String dataFile) throws IOException {
+	static MLDataSet createDataSet(List<Sentence> sents){
+		System.out.println(sents.size() + " sentences loaded.");
+		double data[][]=new double[sents.size()][];
+		double labels[][]=new double[sents.size()][];
+		int i=0;
+		//
+		// Initialize data set
+		//
+		for(Sentence s:sents){
+			data[i]=s.getEncodedText(maxLen);
+			labels[i]=s.getEncodedLabel();
+			i++;
+		}
+		return new BasicMLDataSet(data, labels);		
+	}
+
+	
+	static MLDataSet loadOrCreateData(String dataFile, boolean test) throws IOException {
+		MLDataSet dataSet=null;
 		System.out.println("Using data file :: "+dataFile);
 		File f=new File(dataFile);
 		if(f.exists()){
-			trainingDataSet=EncogUtility.loadEGB2Memory(f);
+			dataSet=EncogUtility.loadEGB2Memory(f);
 			System.out.println("Training data loaded from :: "+dataFile);
 		}else{
 			System.out.println("Data file not found, creating it ::  "+dataFile);
 			DataLoader dl = new DataLoader();
-			List<Sentence> sents = dl.getSentences();
-			System.out.println(sents.size() + " sentences loaded.");
-			double data[][]=new double[sents.size()][];
-			double labels[][]=new double[sents.size()][];
-			//
-			// Initialize training data
-			//
-			int i=0;
-			for(Sentence s:sents){
-				data[i]=s.getEncodedText(maxLen);
-				labels[i]=s.getEncodedLabel();
-				i++;
+			List<Sentence> sents;
+			if(test){
+				sents = dl.getTestSentences();
+			}else{
+				sents = dl.getSentences();
 			}
-			
-			trainingDataSet = new BasicMLDataSet(data, labels);
-			EncogUtility.saveEGB(f, trainingDataSet);
+			dataSet = createDataSet(sents);
+			EncogUtility.saveEGB(f, dataSet);
 			System.out.println("Data file created ::  "+dataFile);
 		}
-		
+		return dataSet;
 	}
 	
 	static void validateBaseDir() {
@@ -98,6 +111,17 @@ public class TrainingPipeline {
 		
 	}	
 	
+	private static void runTest() {
+		for(MLDataPair pair:testDataSet){
+			final MLData output = network.compute(pair.getInput());
+			double networkScore=output.getData(0);
+			double realScore=pair.getIdeal().getData(0);
+			System.out.println("\t Real : "+realScore+" Network : "+networkScore);
+
+		}
+		
+	}	
+	
 	public static void main(String[] args) throws Exception {
 		if(args.length>0){
 			Constants.BASE_DIR=args[0];
@@ -105,12 +129,17 @@ public class TrainingPipeline {
 		System.out.println("Using base Directory :: "+Constants.BASE_DIR);
 		validateBaseDir();
 		String dataFile = Constants.BASE_DIR + File.separator + "traningData.egb";
+		String testDataFile = Constants.BASE_DIR + File.separator + "testData.egb";
 		File networkSavePath=new File(Constants.BASE_DIR + File.separator + "encog_network.eg");
-		loadOrCreateData(dataFile);
+		trainingDataSet = loadOrCreateData(dataFile,false);
+		testDataSet = loadOrCreateData(testDataFile,true); 
 		loadOrCreateNetwork(networkSavePath.getAbsolutePath());
 		System.out.println("Network structure is :: \n\t"+network.getFactoryArchitecture());
+		runTest();
 		System.exit(0);
 	}
+
+
 
 
 	

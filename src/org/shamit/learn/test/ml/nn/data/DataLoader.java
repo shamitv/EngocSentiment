@@ -13,9 +13,12 @@ public class DataLoader {
 
 	List<InputStream> dataStreams = new ArrayList<>();
 	String dataFiles[] = {"amazon_cells_labelled.txt","imdb_labelled.txt","yelp_labelled.txt"};
+	List<InputStream> testDataStreams = new ArrayList<>();
+	String testDataFiles[] = {"test_data.txt"};
 	
 	public DataLoader() {
 		super();
+		initStreams();
 	}
 	
 	protected void initStreams(){
@@ -27,16 +30,30 @@ public class DataLoader {
 				}
 				dataStreams.add(in);
 			}			
+			for(String fname:testDataFiles){
+				InputStream in=this.getClass().getResourceAsStream(fname);
+				if(in==null){
+					throw new RuntimeException("Stream not found for file :: "+fname);
+				}
+				testDataStreams.add(in);
+			}	
 		}catch(Exception e){
 			throw new RuntimeException("Error loading training data",e);
 		}
 	}
 	
 	public List<Sentence> getSentences() throws IOException{
-		initStreams();
+		return loadSentences(dataStreams);
+	}
+
+	public List<Sentence> getTestSentences() throws IOException{
+		return loadSentences(testDataStreams);
+	}	
+	
+	List<Sentence> loadSentences(List<InputStream> streams) throws IOException{
 		List<String> lines=new ArrayList<>();
 		List<Sentence> ret=new ArrayList<>();
-		for(InputStream in:dataStreams){
+		for(InputStream in:streams){
 			List<String> temp = IOUtils.readLines(in, StandardCharsets.UTF_8);
 			lines.addAll(temp);
 		}
